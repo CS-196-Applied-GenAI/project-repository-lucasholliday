@@ -2,7 +2,7 @@
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from mysql.connector import IntegrityError, errorcode
 from pydantic import BaseModel
 
@@ -19,6 +19,26 @@ class UpdateMeRequest(BaseModel):
     bio: str | None = None
     username: str | None = None
     profile_picture: str | None = None
+
+
+@router.get('/search')
+def search_users(
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+    q: str = Query(min_length=1, max_length=50),
+    limit: int = Query(default=8, ge=1, le=25),
+) -> dict[str, list[dict[str, Any]]]:
+    with get_db() as conn:
+        with conn.cursor() as cursor:
+            user_id_column = resolve_user_id_column(cursor)
+            cursor.execute(
+                f'SELECT username FROM users '
+                f'WHERE username LIKE %s AND {user_id_column} != %s '
+                f'ORDER BY username ASC LIMIT %s',
+                (f'%{q.strip()}%', current_user.user_id, limit),
+            )
+            rows = cursor.fetchall()
+
+    return {'items': [{'username': str(row[0])} for row in rows]}
 
 
 @router.patch('/me')

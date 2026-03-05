@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+:root {
+  --bg-canvas: #090b0d;
+  --bg-layer-1: #101417;
+  --bg-layer-2: #151b1f;
+  --bg-layer-3: #1b2328;
+
+  --text-primary: #e8edf0;
+  --text-secondary: #a5b2bc;
+  --text-muted: #7e8d98;
+
+  --accent-500: #2fb16b;
+  --accent-400: #4fd085;
+  --accent-300: #86e8ad;
+  --accent-200: #b8f5ce;
+  --accent-glow: rgba(47, 177, 107, 0.28);
+
+  --border-subtle: rgba(148, 163, 184, 0.16);
+  --border-strong: rgba(148, 163, 184, 0.28);
+  --ring-focus: 0 0 0 3px rgba(47, 177, 107, 0.22);
+
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+
+  --shadow-soft: 0 6px 24px rgba(0, 0, 0, 0.26);
+  --shadow-elevated: 0 16px 48px rgba(0, 0, 0, 0.42);
+
+  color: var(--text-primary);
+  background: var(--bg-canvas);
+  font-family: "Space Grotesk", "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 12% 2%, rgba(47, 177, 107, 0.17), transparent 40%),
+    radial-gradient(circle at 88% 100%, rgba(47, 177, 107, 0.11), transparent 34%),
+    linear-gradient(180deg, #0a0d0f 0%, #090b0d 100%);
+  color: var(--text-primary);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.surface {
+  border: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--bg-layer-2) 86%, transparent);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(8px);
+}
+
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: var(--ring-focus);
+}
+
+.premium-link {
+  color: var(--accent-300);
+  text-decoration: none;
+}
+
+.premium-link:hover {
+  color: var(--accent-200);
+}
+
+@keyframes pop-like {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.like-pop {
+  animation: pop-like 180ms ease-out;
+}
