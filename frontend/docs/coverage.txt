@@ -1,0 +1,6 @@
+Coverage summary generated on 2026-03-05 (local run: npm run test:coverage)
+
+All files               | % Stmts | % Branch | % Funcs | % Lines
+All files               |   89.15 |    74.25 |   95.55 |   90.88
+
+Status: PASS (>= 60% required)
