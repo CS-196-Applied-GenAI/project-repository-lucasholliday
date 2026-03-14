@@ -40,6 +40,6 @@ describe('RepliesPage', () => {
     expect(screen.getByText(/second reply/i)).toBeInTheDocument()
 
     await user.click(screen.getByRole('link', { name: /reply/i }))
-    expect(await screen.findByRole('heading', { name: /reply to tweet 1/i })).toBeInTheDocument()
+    expect((await screen.findAllByRole('heading', { name: /^reply$/i })).length).toBeGreaterThan(0)
   })
 })

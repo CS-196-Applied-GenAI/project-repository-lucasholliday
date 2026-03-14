@@ -5,6 +5,7 @@ export type Reply = {
   author_username: string
   text: string
   created_at: string
+  reply_to_username?: string | null
 }
 
 type RepliesByTweet = Record<string, Reply[]>

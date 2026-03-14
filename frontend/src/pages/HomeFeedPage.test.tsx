@@ -149,7 +149,7 @@ describe('HomeFeedPage', () => {
 
     expect(await screen.findByText(/tweet a/i)).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: /load more/i }))
+    await user.click(screen.getByRole('button', { name: /more/i }))
 
     expect(await screen.findByText(/tweet b/i)).toBeInTheDocument()
     expect(screen.getByText(/tweet a/i)).toBeInTheDocument()
@@ -174,10 +174,10 @@ describe('HomeFeedPage', () => {
 
     await user.click(await screen.findByRole('link', { name: /alice/i }))
 
-    expect(await screen.findByRole('heading', { name: /profile:\s*alice/i })).toBeInTheDocument()
+    expect(await screen.findByText('@alice')).toBeInTheDocument()
   })
 
-  it('view replies action navigates to replies page', async () => {
+  it('reply action navigates to reply page', async () => {
     const user = userEvent.setup()
 
     server.use(
@@ -194,8 +194,8 @@ describe('HomeFeedPage', () => {
       </MemoryRouter>,
     )
 
-    await user.click(await screen.findByRole('button', { name: /view replies/i }))
-    expect(await screen.findByRole('heading', { name: /replies for tweet 11/i })).toBeInTheDocument()
+    await user.click((await screen.findAllByRole('button', { name: /^reply$/i }))[0])
+    expect((await screen.findAllByRole('heading', { name: /^reply$/i })).length).toBeGreaterThan(0)
   })
 
   it('shows delete for own tweets and removes tweet on success', async () => {

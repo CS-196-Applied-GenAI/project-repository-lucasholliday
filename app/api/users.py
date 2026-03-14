@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from mysql.connector import IntegrityError, errorcode
 from pydantic import BaseModel
 
+from app.api.tweets import resolve_like_columns, resolve_retweeted_column, resolve_tweet_columns
 from app.api.util import value_error_to_http_400
 from app.core.security import CurrentUser, get_current_user, resolve_user_id_column
 from app.core.validators import validate_username
@@ -19,6 +20,38 @@ class UpdateMeRequest(BaseModel):
     bio: str | None = None
     username: str | None = None
     profile_picture: str | None = None
+
+
+@router.get('/me')
+def get_me_profile(
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+) -> dict[str, Any]:
+    with get_db() as conn:
+        with conn.cursor() as cursor:
+            user_id_column = resolve_user_id_column(cursor)
+            cursor.execute(
+                f'SELECT {user_id_column}, username, bio, profile_picture '
+                f'FROM users WHERE {user_id_column} = %s LIMIT 1',
+                (current_user.user_id,),
+            )
+            row = cursor.fetchone()
+            if row is None:
+                raise HTTPException(status_code=404, detail='User not found')
+
+            user_id, username, bio, profile_picture = row
+
+            follower_count, following_count = get_follow_counts(cursor, int(user_id))
+            recent_posts = get_user_posts(cursor, int(user_id), current_user.user_id)
+
+    return {
+        'user_id': int(user_id),
+        'username': str(username),
+        'bio': bio,
+        'profile_picture': profile_picture,
+        'follower_count': follower_count,
+        'following_count': following_count,
+        'posts': recent_posts,
+    }
 
 
 @router.get('/search')
@@ -39,6 +72,53 @@ def search_users(
             rows = cursor.fetchall()
 
     return {'items': [{'username': str(row[0])} for row in rows]}
+
+
+@router.get('/{username}')
+def get_user_profile(
+    username: str,
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+) -> dict[str, Any]:
+    with get_db() as conn:
+        with conn.cursor() as cursor:
+            user_id_column = resolve_user_id_column(cursor)
+            cursor.execute(
+                f'SELECT {user_id_column}, username, bio, profile_picture FROM users WHERE username = %s LIMIT 1',
+                (username,),
+            )
+            row = cursor.fetchone()
+            if row is None:
+                raise HTTPException(status_code=404, detail='User not found')
+
+            target_user_id, resolved_username, bio, profile_picture = row
+            target_user_id = int(target_user_id)
+            follower_count, following_count = get_follow_counts(cursor, target_user_id)
+            follower_col, following_col = resolve_follow_columns(cursor)
+            blocker_col, blocked_col = resolve_block_columns(cursor)
+
+            cursor.execute(
+                f'SELECT 1 FROM follows WHERE {follower_col} = %s AND {following_col} = %s LIMIT 1',
+                (current_user.user_id, target_user_id),
+            )
+            is_following = cursor.fetchone() is not None
+            cursor.execute(
+                f'SELECT 1 FROM blocks WHERE {blocker_col} = %s AND {blocked_col} = %s LIMIT 1',
+                (current_user.user_id, target_user_id),
+            )
+            is_blocked = cursor.fetchone() is not None
+            posts = [] if is_blocked else get_user_posts(cursor, target_user_id, current_user.user_id)
+
+    return {
+        'user_id': target_user_id,
+        'username': str(resolved_username),
+        'bio': bio,
+        'profile_picture': profile_picture,
+        'follower_count': follower_count,
+        'following_count': following_count,
+        'is_following': is_following,
+        'is_blocked': is_blocked,
+        'posts': posts,
+    }
 
 
 @router.patch('/me')
@@ -188,6 +268,66 @@ def resolve_user_id_by_username(cursor, username: str, user_id_column: str) -> i
     )
     row = cursor.fetchone()
     return int(row[0]) if row else None
+
+
+def get_follow_counts(cursor, user_id: int) -> tuple[int, int]:
+    follower_col, following_col = resolve_follow_columns(cursor)
+    cursor.execute(f'SELECT COUNT(*) FROM follows WHERE {following_col} = %s', (user_id,))
+    follower_count = int(cursor.fetchone()[0])
+    cursor.execute(f'SELECT COUNT(*) FROM follows WHERE {follower_col} = %s', (user_id,))
+    following_count = int(cursor.fetchone()[0])
+    return follower_count, following_count
+
+
+def get_user_posts(cursor, target_user_id: int, viewer_user_id: int, limit: int = 20) -> list[dict[str, Any]]:
+    id_col, author_col, text_col = resolve_tweet_columns(cursor)
+    like_user_col, like_tweet_col = resolve_like_columns(cursor)
+    retweeted_col = resolve_retweeted_column(cursor)
+    created_col = resolve_created_at_column(cursor)
+    user_id_column = resolve_user_id_column(cursor)
+
+    cursor.execute(f'SELECT username FROM users WHERE {user_id_column} = %s LIMIT 1', (target_user_id,))
+    user_row = cursor.fetchone()
+    author_username = str(user_row[0]) if user_row is not None else ''
+
+    cursor.execute(
+        f'SELECT {id_col}, {text_col}, {created_col}, {retweeted_col} '
+        f'FROM tweets WHERE {author_col} = %s ORDER BY {created_col} DESC, {id_col} DESC LIMIT %s',
+        (target_user_id, limit),
+    )
+    rows = cursor.fetchall()
+
+    items: list[dict[str, Any]] = []
+    for tweet_id, text, created_at, retweeted_from in rows:
+        cursor.execute(f'SELECT COUNT(*) FROM likes WHERE {like_tweet_col} = %s', (tweet_id,))
+        like_count = int(cursor.fetchone()[0])
+        cursor.execute(
+            f'SELECT 1 FROM likes WHERE {like_tweet_col} = %s AND {like_user_col} = %s LIMIT 1',
+            (tweet_id, viewer_user_id),
+        )
+        is_liked_by_me = cursor.fetchone() is not None
+        items.append(
+            {
+                'tweet_id': int(tweet_id),
+                'author_username': author_username,
+                'text': text,
+                'created_at': str(created_at),
+                'retweeted_from': retweeted_from,
+                'like_count': like_count,
+                'is_liked_by_me': is_liked_by_me,
+            }
+        )
+
+    return items
+
+
+def resolve_created_at_column(cursor) -> str:
+    cursor.execute('SHOW COLUMNS FROM tweets')
+    columns = {row[0] for row in cursor.fetchall()}
+    for candidate in ('created_at', 'created_on', 'createdAt'):
+        if candidate in columns:
+            return candidate
+    return resolve_tweet_columns(cursor)[0]
 
 
 def resolve_follow_columns(cursor) -> tuple[str, str]:

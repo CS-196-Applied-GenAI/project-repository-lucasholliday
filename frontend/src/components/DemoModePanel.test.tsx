@@ -31,13 +31,13 @@ describe('DemoModePanel', () => {
       </ToastProvider>,
     )
 
-    await user.click(screen.getByRole('button', { name: /demo mode off/i }))
-    const generateButton = screen.getByRole('button', { name: /generate demo content/i })
+    await user.click(screen.getByRole('button', { name: /^off$/i }))
+    const generateButton = screen.getByRole('button', { name: /refresh activity/i })
 
     await user.click(generateButton)
 
-    expect(screen.getByRole('button', { name: /generating/i })).toBeDisabled()
-    expect(await screen.findByText(/demo content generated/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /refreshing/i })).toBeDisabled()
+    expect(await screen.findByText(/content refreshed/i)).toBeInTheDocument()
 
     await waitFor(() => {
       expect(onSeeded).toHaveBeenCalledTimes(1)

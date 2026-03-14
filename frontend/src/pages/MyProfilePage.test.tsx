@@ -66,7 +66,7 @@ describe('MyProfilePage', () => {
     const bioInput = screen.getByLabelText(/bio/i)
     await user.clear(bioInput)
     await user.type(bioInput, 'new bio text')
-    await user.click(screen.getByRole('button', { name: /save profile/i }))
+    await user.click(screen.getByRole('button', { name: /^save$/i }))
 
     expect(await screen.findByText(/new bio text/i)).toBeInTheDocument()
   })

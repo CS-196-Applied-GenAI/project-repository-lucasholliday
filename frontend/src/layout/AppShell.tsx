@@ -1,19 +1,28 @@
 import { useState } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
 import { apiFetch } from '../api/client'
 import { useAuth } from '../auth/useAuth'
-import { DemoModePanel } from '../components/DemoModePanel'
 import { Avatar } from '../ui/Avatar'
 import { Button } from '../ui/Button'
 import { Card } from '../ui/Card'
+import { CompassIcon, ExitIcon, FeatherIcon, HomeIcon, SparklesIcon, UserIcon } from '../ui/icons'
 
 export function AppShell() {
   const navigate = useNavigate()
+  const location = useLocation()
   const auth = useAuth()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const navItems = [
+    { to: '/home', label: 'Home', icon: <HomeIcon width={18} height={18} /> },
+    { to: '/discover', label: 'Explore', icon: <CompassIcon width={18} height={18} /> },
+    { to: '/profile', label: 'Profile', icon: <UserIcon width={18} height={18} /> },
+  ]
+  const suggestedUsers = ['wildcatfan', 'northwesterngrad', 'campusreport']
+  const trendingTopics = ['Northwestern hoops', 'Lakefill sunset', 'Big Ten tournament']
+  const communities = ['Campus Life', 'Chicago Sports', 'Evanston Weekends']
   const baseLinkClass =
-    'focus-ring block w-full whitespace-nowrap rounded-xl border border-transparent px-4 py-3 text-sm font-semibold tracking-wide text-[var(--text-secondary)] transition hover:border-[var(--border-strong)] hover:bg-[var(--accent-glow)] hover:text-[var(--text-primary)]'
+    'focus-ring flex w-full items-center gap-3 whitespace-nowrap rounded-[var(--radius-md)] border border-transparent px-3.5 py-2.5 text-sm font-semibold text-[var(--text-secondary)] transition duration-150 hover:border-[var(--border-strong)] hover:bg-[var(--bg-layer-2)] hover:text-[var(--text-primary)]'
 
   async function onLogout() {
     try {
@@ -28,104 +37,143 @@ export function AppShell() {
     }
   }
 
-  function onDemoSeeded() {
-    window.dispatchEvent(new Event('chirper:demo-seeded'))
-  }
-
   return (
-    <div className='mx-auto grid min-h-screen max-w-7xl grid-cols-1 gap-4 px-4 py-5 lg:grid-cols-[260px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)_300px] lg:gap-6'>
-      <aside className='sticky top-4 h-fit'>
-        <Card className='p-4'>
-          <div className='mb-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--accent-glow)] p-4'>
-            <p className='text-xs font-semibold uppercase tracking-[0.2em] text-[var(--accent-300)]'>Chirper</p>
-            <p className='mt-2 text-sm text-[var(--text-secondary)]'>Greenline social dashboard</p>
-            {auth.me ? (
-              <div className='mt-3 flex items-center gap-2'>
-                <Avatar username={auth.me.username} size='sm' />
-                <p className='text-sm font-semibold text-[var(--text-primary)]'>@{auth.me.username}</p>
-              </div>
-            ) : null}
-          </div>
-
-          <p className='mb-2 px-1 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-300)]'>Navigation</p>
-          <nav aria-label='Primary' className='grid gap-2'>
-            <NavLink
-              to='/home'
-              className={({ isActive }) =>
-                `${baseLinkClass} ${isActive ? 'border-[var(--accent-400)] bg-[var(--accent-glow)] text-[var(--text-primary)]' : ''}`
-              }
-            >
-              Home
-            </NavLink>
-            <NavLink
-              to='/compose'
-              className={({ isActive }) =>
-                `${baseLinkClass} ${isActive ? 'border-[var(--accent-400)] bg-[var(--accent-glow)] text-[var(--text-primary)]' : ''}`
-              }
-            >
-              Compose
-            </NavLink>
-            <NavLink
-              to='/discover'
-              className={({ isActive }) =>
-                `${baseLinkClass} ${isActive ? 'border-[var(--accent-400)] bg-[var(--accent-glow)] text-[var(--text-primary)]' : ''}`
-              }
-            >
-              Discover
-            </NavLink>
-            <NavLink
-              to='/profile'
-              className={({ isActive }) =>
-                `${baseLinkClass} ${isActive ? 'border-[var(--accent-400)] bg-[var(--accent-glow)] text-[var(--text-primary)]' : ''}`
-              }
-            >
-              My Profile
-            </NavLink>
+    <div className='app-grid min-h-screen'>
+      <div className='mx-auto grid min-h-screen w-full max-w-[1380px] grid-cols-1 gap-5 px-4 py-5 lg:grid-cols-[220px_minmax(0,1fr)_280px] lg:gap-6 lg:px-6 xl:grid-cols-[220px_minmax(0,680px)_300px]'>
+        <aside className='lg:sticky lg:top-5 lg:h-[calc(100vh-2.5rem)]'>
+          <Card className='flex h-full flex-col p-4'>
             <button
               type='button'
-              disabled={isLoggingOut}
-              onClick={onLogout}
-              className={`${baseLinkClass} text-left disabled:opacity-60`}
+              onClick={() => navigate('/home')}
+              className='focus-ring rounded-[var(--radius-md)] p-1 text-left'
             >
-              {isLoggingOut ? 'Logging out...' : 'Logout'}
+              <div className='flex items-center gap-3'>
+                <div className='flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] bg-[var(--accent-glow-strong)] text-[var(--accent-300)]'>
+                  <SparklesIcon width={20} height={20} />
+                </div>
+                <div>
+                  <p className='text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--accent-300)]'>Grove</p>
+                  <h1 className='mt-1 text-xl font-semibold tracking-tight text-[var(--text-primary)]'>Calmer social.</h1>
+                </div>
+              </div>
             </button>
-          </nav>
 
-          <DemoModePanel onSeeded={onDemoSeeded} />
-        </Card>
-      </aside>
-      <section className='min-w-0 rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[color:var(--bg-layer-2)]/80 p-5 shadow-[var(--shadow-elevated)] md:p-7'>
-        <Outlet />
-      </section>
-      <aside className='hidden xl:block'>
-        <Card className='sticky top-4 space-y-4 p-4'>
-          <div>
-            <p className='text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-300)]'>Who to follow</p>
-            <ul className='mt-3 space-y-3'>
-              {['demoaccount', 'greenline', 'campusnews'].map((username) => (
-                <li key={username} className='flex items-center justify-between gap-2'>
-                  <button
-                    type='button'
-                    className='focus-ring inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm text-[var(--text-primary)] hover:bg-white/5'
-                    onClick={() => navigate(`/u/${username}`)}
-                  >
-                    <Avatar username={username} size='sm' />
-                    <span>@{username}</span>
-                  </button>
-                  <Button
-                    size='sm'
-                    onClick={() => {
-                      navigate(`/u/${username}`)
-                    }}
-                  >
-                    View
-                  </Button>
-                </li>
+            <div className='mt-5 rounded-[var(--radius-md)] border border-[var(--border-subtle)] bg-[var(--bg-layer-1)] p-3'>
+              <div className='flex items-center gap-3'>
+                <Avatar username={auth.me?.username ?? 'grove'} />
+                <div className='min-w-0'>
+                  <p className='truncate text-sm font-semibold text-[var(--text-primary)]'>{auth.me?.username ?? 'Loading…'}</p>
+                  <p className='truncate text-xs text-[var(--text-muted)]'>@{auth.me?.username ?? 'grove'}</p>
+                </div>
+              </div>
+            </div>
+
+            <nav aria-label='Primary' className='mt-5 grid gap-2'>
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    `${baseLinkClass} ${isActive ? 'border-[var(--border-strong)] bg-[var(--bg-layer-1)] text-[var(--text-primary)]' : ''}`
+                  }
+                >
+                  <span className='text-[var(--accent-300)]'>{item.icon}</span>
+                  <span>{item.label}</span>
+                </NavLink>
               ))}
-            </ul>
+            </nav>
+
+            <div className='mt-5'>
+              <Button type='button' variant='primary' className='w-full gap-2' onClick={() => navigate('/compose')}>
+                <FeatherIcon width={17} height={17} />
+                Post
+              </Button>
+            </div>
+
+            <div className='mt-auto space-y-4 pt-5'>
+              <button
+                type='button'
+                disabled={isLoggingOut}
+                onClick={onLogout}
+                className={`${baseLinkClass} border-[var(--border-subtle)] bg-[var(--bg-layer-2)] text-left disabled:opacity-60`}
+              >
+                <span className='text-red-200'>
+                  <ExitIcon width={18} height={18} />
+                </span>
+                <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
+              </button>
+            </div>
+          </Card>
+        </aside>
+
+        <section className='min-w-0 md:p-1'>
+          <div className='mb-5 flex items-start justify-between gap-3 border-b border-[var(--border-subtle)] pb-4'>
+            <div>
+              <p className='text-xs font-semibold uppercase tracking-[0.2em] text-[var(--accent-300)]'>Grove</p>
+              <p className='mt-2 text-sm text-[var(--text-secondary)]'>
+                {location.pathname === '/home'
+                  ? 'Your personalized feed'
+                  : location.pathname === '/discover'
+                    ? 'Explore profiles and communities'
+                    : location.pathname === '/profile'
+                      ? 'Manage your profile'
+                      : 'Stay in the conversation'}
+              </p>
+            </div>
+            <Button type='button' variant='ghost' size='sm' onClick={() => navigate('/home')}>
+              Back
+            </Button>
           </div>
-        </Card>
-      </aside>
+          <Outlet />
+        </section>
+
+        <aside className='hidden lg:block'>
+          <div className='sticky top-5 space-y-4'>
+            <Card className='p-5'>
+              <p className='text-xs font-semibold uppercase tracking-[0.18em] text-[var(--accent-300)]'>Trending</p>
+              <ul className='mt-4 space-y-3'>
+                {trendingTopics.map((topic) => (
+                  <li key={topic} className='border-b border-[var(--border-subtle)] pb-3 last:border-b-0 last:pb-0'>
+                    <p className='text-sm font-medium text-[var(--text-primary)]'>{topic}</p>
+                    <p className='mt-1 text-xs text-[var(--text-muted)]'>Active conversation</p>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+
+            <Card className='p-5'>
+              <p className='text-xs font-semibold uppercase tracking-[0.18em] text-[var(--accent-300)]'>Communities</p>
+              <ul className='mt-4 space-y-3 text-sm text-[var(--text-secondary)]'>
+                {communities.map((community) => (
+                  <li key={community} className='rounded-[var(--radius-md)] border border-[var(--border-subtle)] px-3 py-3'>
+                    {community}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+
+            <Card className='p-5'>
+              <p className='text-xs font-semibold uppercase tracking-[0.18em] text-[var(--accent-300)]'>Suggested users</p>
+              <div className='mt-4 space-y-3'>
+                {suggestedUsers.map((username) => (
+                  <button
+                    key={username}
+                    type='button'
+                    onClick={() => navigate(`/u/${username}`)}
+                    className='focus-ring flex w-full items-center justify-between rounded-[var(--radius-md)] border border-[var(--border-subtle)] px-3 py-3 text-left transition hover:border-[var(--accent-500)]'
+                  >
+                    <div>
+                      <p className='text-sm font-medium text-[var(--text-primary)]'>@{username}</p>
+                      <p className='mt-1 text-xs text-[var(--text-muted)]'>Profile</p>
+                    </div>
+                    <span className='text-xs font-semibold text-[var(--accent-300)]'>Open</span>
+                  </button>
+                ))}
+              </div>
+            </Card>
+          </div>
+        </aside>
+      </div>
     </div>
   )
 }

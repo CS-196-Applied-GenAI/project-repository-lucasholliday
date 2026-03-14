@@ -22,8 +22,8 @@ describe('UserProfilePage', () => {
       </MemoryRouter>,
     )
 
-    expect(await screen.findByRole('heading', { name: /profile:\s*alice/i })).toBeInTheDocument()
-    expect(screen.getByText(/tweets coming soon/i)).toBeInTheDocument()
+    expect(await screen.findByText('@alice')).toBeInTheDocument()
+    expect(screen.getByText(/^posts$/i)).toBeInTheDocument()
   })
 
   it('follow and unfollow toggle calls endpoints and updates button text', async () => {
@@ -80,11 +80,11 @@ describe('UserProfilePage', () => {
     )
 
     await user.click(await screen.findByRole('button', { name: /^block$/i }))
-    expect(await screen.findByText(/you blocked this user\./i)).toBeInTheDocument()
+    expect(await screen.findByText(/this profile is hidden\./i)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /^follow$/i })).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /unblock/i }))
-    expect(screen.queryByText(/you blocked this user\./i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/this profile is hidden\./i)).not.toBeInTheDocument()
     expect(await screen.findByRole('button', { name: /^follow$/i })).toBeInTheDocument()
   })
 

@@ -22,10 +22,10 @@ describe('PostReplyPage', () => {
       </MemoryRouter>,
     )
 
-    await user.type(screen.getByLabelText(/reply text/i), 'this is my reply')
-    await user.click(screen.getByRole('button', { name: /post reply/i }))
+    await user.type(screen.getByLabelText(/^reply$/i), 'this is my reply')
+    await user.click(screen.getByRole('button', { name: /^reply$/i }))
 
-    expect(await screen.findByRole('heading', { name: /replies for tweet 1/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /^replies$/i })).toBeInTheDocument()
     expect(screen.getByText(/this is my reply/i)).toBeInTheDocument()
   })
 })

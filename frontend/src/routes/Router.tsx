@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 
 import { IdleTimerProvider } from '../auth/IdleTimerProvider'
+import { FeedProvider } from '../feed/FeedContext'
 import { AppShell } from '../layout/AppShell'
 import { DiscoverPage } from '../pages/DiscoverPage'
 import { HomeFeedPage } from '../pages/HomeFeedPage'
@@ -23,9 +24,11 @@ export function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route
           element={
-            <IdleTimerProvider>
-              <AppShell />
-            </IdleTimerProvider>
+            <FeedProvider>
+              <IdleTimerProvider>
+                <AppShell />
+              </IdleTimerProvider>
+            </FeedProvider>
           }
         >
           <Route path='/home' element={<HomeFeedPage />} />

@@ -24,9 +24,9 @@ describe('AppShell', () => {
     )
 
     expect(await screen.findByRole('link', { name: /home/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /compose/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /discover/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /my profile/i })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /^post$/i }).length).toBeGreaterThan(0)
+    expect(screen.getByRole('link', { name: /explore/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /^profile$/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /logout/i })).toBeInTheDocument()
   })
 
@@ -76,7 +76,7 @@ describe('AppShell', () => {
     expect(getToken()).toBeNull()
   })
 
-  it('navigates between Home, Compose, and My Profile via nav links', async () => {
+  it('navigates between Home, Post, Explore, and Profile via sidebar controls', async () => {
     const user = userEvent.setup()
 
     render(
@@ -89,13 +89,13 @@ describe('AppShell', () => {
 
     expect(await screen.findByRole('heading', { name: /home feed/i })).toBeInTheDocument()
 
-    await user.click(screen.getByRole('link', { name: /compose/i }))
-    expect(await screen.findByRole('heading', { name: /compose tweet/i })).toBeInTheDocument()
+    await user.click(screen.getAllByRole('button', { name: /^post$/i })[0])
+    expect((await screen.findAllByRole('heading', { name: /create a post/i })).length).toBeGreaterThan(0)
 
-    await user.click(screen.getByRole('link', { name: /discover/i }))
-    expect(await screen.findByRole('heading', { name: /discover accounts/i })).toBeInTheDocument()
+    await user.click(screen.getByRole('link', { name: /explore/i }))
+    expect(await screen.findByRole('heading', { name: /^explore$/i })).toBeInTheDocument()
 
-    await user.click(screen.getByRole('link', { name: /my profile/i }))
+    await user.click(screen.getByRole('link', { name: /^profile$/i }))
     expect(await screen.findByRole('heading', { name: /my profile/i })).toBeInTheDocument()
 
     await user.click(screen.getByRole('link', { name: /home/i }))
@@ -115,9 +115,9 @@ describe('AppShell', () => {
       )
 
       expect(await screen.findByRole('link', { name: /home/i })).toBeInTheDocument()
-      expect(screen.getByRole('link', { name: /compose/i })).toBeInTheDocument()
-      expect(screen.getByRole('link', { name: /discover/i })).toBeInTheDocument()
-      expect(screen.getByRole('link', { name: /my profile/i })).toBeInTheDocument()
+      expect(screen.getAllByRole('button', { name: /^post$/i }).length).toBeGreaterThan(0)
+      expect(screen.getByRole('link', { name: /explore/i })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: /^profile$/i })).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /logout/i })).toBeInTheDocument()
 
       cleanup()

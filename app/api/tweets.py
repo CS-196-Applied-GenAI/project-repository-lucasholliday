@@ -8,12 +8,63 @@ from pydantic import BaseModel
 from app.core.security import CurrentUser, get_current_user
 from app.db import get_db
 from app.db_queries import is_blocked
+from app.core.security import resolve_user_id_column
 
 router = APIRouter(prefix='/tweets', tags=['tweets'])
 
 
 class CreateTweetRequest(BaseModel):
     text: str
+
+
+@router.get('/{tweet_id}')
+def get_tweet(
+    tweet_id: int,
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+) -> dict[str, Any]:
+    with get_db() as conn:
+        with conn.cursor() as cursor:
+            id_col, author_col, text_col = resolve_tweet_columns(cursor)
+            retweeted_col = resolve_retweeted_column(cursor)
+            like_user_col, like_tweet_col = resolve_like_columns(cursor)
+            created_col = resolve_created_at_column(cursor)
+            user_id_col = resolve_user_id_column(cursor)
+
+            cursor.execute(
+                f'SELECT {id_col}, {author_col}, {text_col}, {created_col}, {retweeted_col} '
+                f'FROM tweets WHERE {id_col} = %s LIMIT 1',
+                (tweet_id,),
+            )
+            row = cursor.fetchone()
+            if row is None:
+                raise HTTPException(status_code=404, detail='Tweet not found')
+
+            resolved_id, author_id, text, created_at, retweeted_from = row
+            if is_blocked(conn, current_user.user_id, int(author_id)):
+                raise HTTPException(status_code=403, detail='Blocked relationship')
+
+            cursor.execute(f'SELECT username FROM users WHERE {user_id_col} = %s LIMIT 1', (author_id,))
+            user_row = cursor.fetchone()
+            if user_row is None:
+                raise HTTPException(status_code=404, detail='Tweet not found')
+
+            cursor.execute(f'SELECT COUNT(*) FROM likes WHERE {like_tweet_col} = %s', (tweet_id,))
+            like_count = int(cursor.fetchone()[0])
+            cursor.execute(
+                f'SELECT 1 FROM likes WHERE {like_tweet_col} = %s AND {like_user_col} = %s LIMIT 1',
+                (tweet_id, current_user.user_id),
+            )
+            is_liked_by_me = cursor.fetchone() is not None
+
+            return {
+                'tweet_id': int(resolved_id),
+                'author_username': str(user_row[0]),
+                'text': text,
+                'created_at': str(created_at),
+                'retweeted_from': retweeted_from,
+                'like_count': like_count,
+                'is_liked_by_me': is_liked_by_me,
+            }
 
 
 @router.post('', status_code=status.HTTP_201_CREATED)
@@ -204,3 +255,12 @@ def resolve_retweeted_column(cursor) -> str:
         if candidate in columns:
             return candidate
     raise HTTPException(status_code=500, detail='Unsupported tweets schema: retweet column missing')
+
+
+def resolve_created_at_column(cursor) -> str:
+    cursor.execute('SHOW COLUMNS FROM tweets')
+    columns = {row[0] for row in cursor.fetchall()}
+    for candidate in ('created_at', 'created_on', 'createdAt'):
+        if candidate in columns:
+            return candidate
+    return resolve_tweet_columns(cursor)[0]

@@ -37,12 +37,12 @@ export function ToastProvider({ children }: PropsWithChildren) {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`rounded-lg border px-3 py-2 text-sm shadow-lg ${
+            className={`fade-up rounded-2xl border px-4 py-3 text-sm shadow-[var(--shadow-soft)] backdrop-blur ${
               toast.kind === 'success'
-                ? 'border-[var(--accent-500)] bg-[color:var(--accent-glow)] text-[var(--accent-200)]'
+                ? 'border-[var(--accent-500)] bg-[linear-gradient(180deg,rgba(17,34,25,0.94),rgba(23,48,36,0.94))] text-[var(--accent-200)]'
                 : toast.kind === 'error'
-                  ? 'border-red-500/60 bg-red-900/70 text-red-100'
-                  : 'border-[var(--border-strong)] bg-[color:var(--bg-layer-2)] text-[var(--text-primary)]'
+                  ? 'border-red-500/60 bg-[rgba(71,17,17,0.92)] text-red-100'
+                  : 'border-[var(--border-strong)] bg-[rgba(17,34,25,0.94)] text-[var(--text-primary)]'
             }`}
           >
             {toast.message}

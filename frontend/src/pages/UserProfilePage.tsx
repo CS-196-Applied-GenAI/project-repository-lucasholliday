@@ -1,17 +1,89 @@
-import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
 
 import { ApiError, apiFetch } from '../api/client'
+import { EmptyState } from '../components/EmptyState'
+import { LoadingSkeleton } from '../components/LoadingSkeleton'
+import { ProfileHeader } from '../components/ProfileHeader'
+import { TweetCard, type Tweet } from '../components/TweetCard'
 import { Button } from '../ui/Button'
 import { Card } from '../ui/Card'
 import { useToast } from '../ui/toast'
 
+type UserProfilePayload = {
+  username: string
+  bio?: string | null
+  profile_picture?: string | null
+  follower_count?: number
+  following_count?: number
+  is_following?: boolean
+  is_blocked?: boolean
+  posts?: Array<{
+    tweet_id: number | string
+    author_username?: string
+    text: string
+    created_at?: string
+    like_count?: number
+    is_liked_by_me?: boolean
+    retweeted_from?: number | string | null
+  }>
+}
+
 export function UserProfilePage() {
   const { username } = useParams()
   const { pushToast } = useToast()
+  const [profile, setProfile] = useState<UserProfilePayload | null>(() =>
+    username
+      ? {
+          username,
+          posts: [],
+          is_following: false,
+          is_blocked: false,
+        }
+      : null,
+  )
   const [isFollowing, setIsFollowing] = useState(false)
   const [isBlocked, setIsBlocked] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  async function loadProfile() {
+    if (!username) return
+    try {
+      setLoading(true)
+      setError(null)
+      const payload = await apiFetch<UserProfilePayload>(`/users/${username}`)
+      setProfile(payload)
+      if (typeof payload.is_following === 'boolean') {
+        setIsFollowing(payload.is_following)
+      }
+      if (typeof payload.is_blocked === 'boolean') {
+        setIsBlocked(payload.is_blocked)
+      }
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        setError('User not found')
+      } else {
+        setError('Could not load profile')
+      }
+      setProfile((current) => current ?? { username, posts: [], is_following: false, is_blocked: false })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    setIsFollowing(false)
+    setIsBlocked(false)
+    setError(null)
+    setProfile({
+      username: username ?? 'unknown',
+      posts: [],
+      is_following: false,
+      is_blocked: false,
+    })
+    void loadProfile()
+  }, [username])
 
   async function onToggleFollow() {
     if (!username) return
@@ -27,6 +99,7 @@ export function UserProfilePage() {
       }
       setIsFollowing(nextFollowing)
       pushToast(nextFollowing ? `Following ${username}` : `Unfollowed ${username}`, 'success')
+      await loadProfile()
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
         setError('User not found')
@@ -65,6 +138,7 @@ export function UserProfilePage() {
         setIsFollowing(false)
       }
       pushToast(nextBlocked ? `Blocked ${username}` : `Unblocked ${username}`, 'success')
+      await loadProfile()
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
         setError('User not found')
@@ -81,32 +155,85 @@ export function UserProfilePage() {
     }
   }
 
+  const posts: Tweet[] =
+    profile?.posts?.map((item) => ({
+      id: item.tweet_id,
+      authorUsername: item.author_username ?? profile.username,
+      text: item.text,
+      createdAt: item.created_at,
+      likeCount: item.like_count ?? 0,
+      likedByMe: item.is_liked_by_me ?? false,
+      repostedByMe: false,
+      kind: item.retweeted_from ? 'repost' : 'post',
+      source: 'server',
+      originalPostId: item.retweeted_from,
+      originalPost: null,
+      replyToUsername: null,
+    })) ?? []
+
   return (
-    <main>
-      <h1 className='text-2xl font-semibold text-[var(--text-primary)]'>Profile: {username}</h1>
-      <p className='mt-2 text-[var(--text-secondary)]'>Follow to see this user in your home feed.</p>
-      <p className='text-sm text-[var(--accent-300)]'>Tweets coming soon</p>
+    <main className='space-y-5'>
+      <h1 className='sr-only'>Profile</h1>
+      {loading ? <LoadingSkeleton count={2} compact /> : null}
+      {profile ? (
+        <>
+          <ProfileHeader
+            username={profile.username}
+            bio={profile.bio}
+            profilePicture={profile.profile_picture}
+            followerCount={profile.follower_count}
+            followingCount={profile.following_count}
+            actions={
+              <>
+                {!isBlocked ? (
+                  <Button type='button' size='sm' onClick={() => void onToggleFollow()}>
+                    {isFollowing ? 'Unfollow' : 'Follow'}
+                  </Button>
+                ) : null}
+                <Button type='button' variant='danger' size='sm' onClick={() => void onToggleBlock()}>
+                  {isBlocked ? 'Unblock' : 'Block'}
+                </Button>
+                <Link
+                  to='/home'
+                  className='focus-ring rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[color:var(--bg-layer-3)]/60 px-4 py-2 text-sm font-semibold text-[var(--text-primary)] transition hover:border-[var(--accent-500)] hover:bg-[color:var(--accent-500)]/10'
+                >
+                  Back
+                </Link>
+              </>
+            }
+          />
 
-      {isBlocked ? (
-        <Card className='mt-4 border-amber-500/50 bg-amber-500/10 p-3 text-sm text-amber-100'>You blocked this user.</Card>
+          {isBlocked ? (
+            <Card className='border-amber-500/50 bg-amber-500/10 p-4 text-sm text-amber-100'>
+              This profile is hidden.
+            </Card>
+          ) : null}
+
+          {error ? <p role='alert' className='text-sm text-red-200'>{error}</p> : null}
+
+          {posts.length === 0 ? (
+            <Card className='p-5'>
+              <p className='text-sm text-[var(--accent-300)]'>Posts</p>
+              <EmptyState
+                title='No posts yet.'
+                description='Posts from this profile will appear here.'
+              />
+            </Card>
+          ) : (
+            <div className='space-y-4'>
+              {posts.map((tweet) => (
+                <TweetCard key={tweet.id} tweet={tweet} />
+              ))}
+            </div>
+          )}
+        </>
       ) : null}
-
-      <div className='mt-4 flex flex-wrap gap-2'>
-        {!isBlocked ? (
-          <Button type='button' size='sm' onClick={onToggleFollow}>
-            {isFollowing ? 'Unfollow' : 'Follow'}
-          </Button>
-        ) : null}
-
-        <Button type='button' variant='danger' size='sm' onClick={onToggleBlock}>
-          {isBlocked ? 'Unblock' : 'Block'}
-        </Button>
-      </div>
-
-      {error ? (
-        <p role='alert' className='mt-3 text-sm text-red-300'>
-          {error}
-        </p>
+      {!loading && !profile ? (
+        <EmptyState
+          eyebrow='Profile unavailable'
+          title='Profile unavailable'
+          description={error ?? 'This account may not exist or may be unavailable right now.'}
+        />
       ) : null}
     </main>
   )

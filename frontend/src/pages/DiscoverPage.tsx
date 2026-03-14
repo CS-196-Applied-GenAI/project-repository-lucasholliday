@@ -9,7 +9,7 @@ import { Card } from '../ui/Card'
 import { TextField } from '../ui/TextField'
 import { useToast } from '../ui/toast'
 
-const SUGGESTED_USERNAMES = ['demoaccount', 'greenline', 'buildwithai', 'campusnews']
+const SUGGESTED_USERNAMES = ['wildcatfan', 'northwesterngrad', 'evanstonsports', 'campusreport']
 
 type SearchResult = {
   username: string
@@ -50,32 +50,33 @@ export function DiscoverPage() {
   }
 
   return (
-    <main>
-      <Card className='mb-6 p-4'>
-        <h1 className='text-2xl font-semibold text-[var(--text-primary)]'>Discover Accounts</h1>
-        <p className='mt-2 text-sm text-[var(--text-secondary)]'>Open profiles and follow people to populate your home feed.</p>
+    <main className='space-y-5'>
+      <Card className='p-5'>
+        <p className='text-xs font-semibold uppercase tracking-[0.2em] text-[var(--accent-300)]'>Explore</p>
+        <h1 className='mt-2 text-3xl font-semibold tracking-tight text-[var(--text-primary)]'>Explore</h1>
+        <p className='mt-2 text-sm leading-6 text-[var(--text-secondary)]'>Find people and communities to follow.</p>
       </Card>
 
-      <Card as='form' onSubmit={onSearch} className='mb-5 p-4'>
+      <Card as='form' onSubmit={onSearch} className='p-5'>
         <div className='mt-2 flex gap-2'>
           <TextField
             id='discover-search'
-            label='Search users'
+            label='Explore'
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder='Find by username'
             className='w-full'
           />
           <Button type='submit' disabled={isSearching} className='self-end'>
-            {isSearching ? 'Searching...' : 'Search'}
+            Explore
           </Button>
         </div>
         {error ? <p role='alert' className='mt-2 text-sm text-red-300'>{error}</p> : null}
       </Card>
 
       {results.length > 0 ? (
-        <Card as='section' className='mb-6 p-4'>
-          <h2 className='text-sm font-semibold uppercase tracking-[0.16em] text-[var(--accent-300)]'>Search Results</h2>
+        <Card as='section' className='p-5'>
+          <h2 className='text-sm font-semibold uppercase tracking-[0.16em] text-[var(--accent-300)]'>Profiles</h2>
           <ul className='mt-3 grid gap-2 md:grid-cols-2'>
             {results.map((item) => (
               <li key={item.username}>
@@ -93,14 +94,15 @@ export function DiscoverPage() {
 
       <section className='grid gap-3 md:grid-cols-2'>
         {usernames.map((username) => (
-          <Card key={username} as='article' className='p-4 transition duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-soft)]'>
+          <Card key={username} as='article' className='p-5 transition duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-soft)]'>
             <p className='text-sm uppercase tracking-[0.16em] text-[var(--accent-300)]'>Suggested</p>
             <p className='mt-2 text-lg font-semibold text-[var(--text-primary)]'>@{username}</p>
+            <p className='mt-2 text-sm leading-6 text-[var(--text-secondary)]'>Open this profile to see posts and connections.</p>
             <Link
               to={`/u/${username}`}
               className='focus-ring mt-4 inline-flex rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[color:var(--bg-layer-3)]/60 px-3 py-2 text-sm font-semibold text-[var(--text-primary)] hover:border-[var(--accent-500)] hover:bg-[var(--accent-glow)]'
             >
-              Open profile
+              Open
             </Link>
           </Card>
         ))}

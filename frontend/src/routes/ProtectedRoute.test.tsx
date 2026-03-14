@@ -46,6 +46,6 @@ describe('ProtectedRoute (stub auth)', () => {
       </AuthProvider>,
     )
 
-    expect(screen.getByRole('heading', { name: /profile:\s*someuser/i })).toBeInTheDocument()
+    expect(screen.getByText('@someuser')).toBeInTheDocument()
   })
 })

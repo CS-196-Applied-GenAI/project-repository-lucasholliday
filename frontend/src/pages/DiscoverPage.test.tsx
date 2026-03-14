@@ -34,8 +34,8 @@ describe('DiscoverPage', () => {
       </MemoryRouter>,
     )
 
-    await user.type(screen.getByLabelText(/search users/i), 'demo')
-    await user.click(screen.getByRole('button', { name: /^search$/i }))
+    await user.type(screen.getByLabelText(/^explore$/i), 'demo')
+    await user.click(screen.getByRole('button', { name: /^explore$/i }))
 
     expect(await screen.findByRole('link', { name: /@demoaccount/i })).toHaveAttribute('href', '/u/demoaccount')
     expect(screen.getByRole('link', { name: /@demouser/i })).toHaveAttribute('href', '/u/demouser')

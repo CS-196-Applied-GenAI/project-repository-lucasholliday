@@ -40,7 +40,7 @@ export function DemoModePanel({ onSeeded }: DemoModePanelProps) {
 
   async function onGenerateDemoContent() {
     if (!canCallDemoApi) {
-      pushToast('Set VITE_DEMO_SEED_SECRET to use demo seeding', 'error')
+      pushToast('Action unavailable', 'error')
       return
     }
 
@@ -52,14 +52,14 @@ export function DemoModePanel({ onSeeded }: DemoModePanelProps) {
           'X-Demo-Seed-Secret': demoSeedSecret,
         },
       })
-      pushToast('Demo content generated.', 'success')
+      pushToast('Content refreshed.', 'success')
       onSeeded?.()
     } catch (err) {
       if (err instanceof ApiError) {
-        pushToast(err.message || 'Failed to generate demo content', 'error')
+        pushToast(err.message || 'Action unavailable', 'error')
         return
       }
-      pushToast('Failed to generate demo content', 'error')
+      pushToast('Action unavailable', 'error')
     } finally {
       setIsSeeding(false)
     }
@@ -67,7 +67,7 @@ export function DemoModePanel({ onSeeded }: DemoModePanelProps) {
 
   async function onClearDemoContent() {
     if (!canCallDemoApi) {
-      pushToast('Set VITE_DEMO_SEED_SECRET to use demo seeding', 'error')
+      pushToast('Action unavailable', 'error')
       return
     }
 
@@ -79,14 +79,14 @@ export function DemoModePanel({ onSeeded }: DemoModePanelProps) {
           'X-Demo-Seed-Secret': demoSeedSecret,
         },
       })
-      pushToast('Demo content cleared.', 'success')
+      pushToast('Content cleared.', 'success')
       onSeeded?.()
     } catch (err) {
       if (err instanceof ApiError) {
-        pushToast(err.message || 'Failed to clear demo content', 'error')
+        pushToast(err.message || 'Action unavailable', 'error')
         return
       }
-      pushToast('Failed to clear demo content', 'error')
+      pushToast('Action unavailable', 'error')
     } finally {
       setIsClearing(false)
     }
@@ -95,16 +95,16 @@ export function DemoModePanel({ onSeeded }: DemoModePanelProps) {
   return (
     <Card className='mt-5 p-3'>
       <div className='flex items-center justify-between gap-2'>
-        <p className='text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-300)]'>Demo Mode</p>
+        <p className='text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent-300)]'>Content tools</p>
         <Button type='button' size='sm' variant={isEnabled ? 'primary' : 'secondary'} onClick={onToggleDemoMode}>
-          {isEnabled ? 'Demo Mode On' : 'Demo Mode Off'}
+          {isEnabled ? 'On' : 'Off'}
         </Button>
       </div>
 
       {isEnabled ? (
         <div className='mt-3 space-y-2'>
           <Button type='button' size='sm' className='w-full' disabled={isSeeding || isClearing} onClick={onGenerateDemoContent}>
-            {isSeeding ? 'Generating...' : 'Generate demo content'}
+            {isSeeding ? 'Refreshing...' : 'Refresh activity'}
           </Button>
           <Button
             type='button'
@@ -114,11 +114,11 @@ export function DemoModePanel({ onSeeded }: DemoModePanelProps) {
             disabled={isClearing || isSeeding}
             onClick={onClearDemoContent}
           >
-            {isClearing ? 'Clearing...' : 'Clear demo content'}
+            {isClearing ? 'Clearing...' : 'Clear activity'}
           </Button>
-          {!canCallDemoApi ? <p className='text-xs text-amber-200'>Missing `VITE_DEMO_SEED_SECRET`.</p> : null}
+          {!canCallDemoApi ? <p className='text-xs text-amber-200'>This action is unavailable right now.</p> : null}
           {isSeeding ? (
-            <div aria-label='Demo seed loading' className='space-y-1.5'>
+            <div aria-label='Content loading' className='space-y-1.5'>
               <div className='h-2 w-full animate-pulse rounded bg-[color:var(--bg-layer-3)]' />
               <div className='h-2 w-4/5 animate-pulse rounded bg-[color:var(--bg-layer-3)]/85' />
             </div>

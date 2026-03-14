@@ -70,3 +70,61 @@ export function SearchIcon(props: IconProps) {
     </BaseIcon>
   )
 }
+
+export function HomeIcon(props: IconProps) {
+  return (
+    <BaseIcon {...props}>
+      <path d='M3 11.5 12 4l9 7.5' />
+      <path d='M5 10.5V20h14v-9.5' />
+      <path d='M9 20v-5h6v5' />
+    </BaseIcon>
+  )
+}
+
+export function CompassIcon(props: IconProps) {
+  return (
+    <BaseIcon {...props}>
+      <circle cx='12' cy='12' r='9' />
+      <path d='m15.5 8.5-2.5 7-7 2.5 2.5-7 7-2.5Z' />
+    </BaseIcon>
+  )
+}
+
+export function UserIcon(props: IconProps) {
+  return (
+    <BaseIcon {...props}>
+      <path d='M19 21a7 7 0 0 0-14 0' />
+      <circle cx='12' cy='8' r='4' />
+    </BaseIcon>
+  )
+}
+
+export function FeatherIcon(props: IconProps) {
+  return (
+    <BaseIcon {...props}>
+      <path d='M20.2 3.8a7.5 7.5 0 0 0-10.6 0L4 9.4V20h10.6l5.6-5.6a7.5 7.5 0 0 0 0-10.6Z' />
+      <path d='m8 16 8-8' />
+      <path d='m10 18 6-6' />
+    </BaseIcon>
+  )
+}
+
+export function ExitIcon(props: IconProps) {
+  return (
+    <BaseIcon {...props}>
+      <path d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4' />
+      <path d='m16 17 5-5-5-5' />
+      <path d='M21 12H9' />
+    </BaseIcon>
+  )
+}
+
+export function SparklesIcon(props: IconProps) {
+  return (
+    <BaseIcon {...props}>
+      <path d='m12 3 1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8L12 3Z' />
+      <path d='m5 16 .9 2.1L8 19l-2.1.9L5 22l-.9-2.1L2 19l2.1-.9L5 16Z' />
+      <path d='m19 14 .9 2.1L22 17l-2.1.9L19 20l-.9-2.1L16 17l2.1-.9L19 14Z' />
+    </BaseIcon>
+  )
+}

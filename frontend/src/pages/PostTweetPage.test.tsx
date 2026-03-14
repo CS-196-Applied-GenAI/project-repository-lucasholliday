@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { http, HttpResponse } from 'msw'
 
 import { AuthProvider } from '../auth/AuthContext'
+import { FeedProvider } from '../feed/FeedContext'
 import { AppRoutes } from '../routes/Router'
 import { server } from '../test/server'
 import { PostTweetPage } from './PostTweetPage'
@@ -18,15 +19,19 @@ describe('PostTweetPage', () => {
 
     render(
       <MemoryRouter>
-        <PostTweetPage />
+        <AuthProvider>
+          <FeedProvider>
+            <PostTweetPage />
+          </FeedProvider>
+        </AuthProvider>
       </MemoryRouter>,
     )
 
     const tooLong = 'a'.repeat(241)
-    await user.type(screen.getByLabelText(/tweet text/i), tooLong)
+    await user.type(screen.getByLabelText(/post text/i), tooLong)
 
-    expect(screen.getByRole('button', { name: /post tweet/i })).toBeDisabled()
-    expect(screen.getByText(/tweet cannot exceed 240 characters/i)).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /^post$/i }).at(-1)).toBeDisabled()
+    expect(screen.getByText(/post cannot exceed 240 characters/i)).toBeInTheDocument()
   })
 
   it('enables submit when text length is exactly 240', async () => {
@@ -34,18 +39,22 @@ describe('PostTweetPage', () => {
 
     render(
       <MemoryRouter>
-        <PostTweetPage />
+        <AuthProvider>
+          <FeedProvider>
+            <PostTweetPage />
+          </FeedProvider>
+        </AuthProvider>
       </MemoryRouter>,
     )
 
     const maxLen = 'a'.repeat(240)
-    await user.type(screen.getByLabelText(/tweet text/i), maxLen)
+    await user.type(screen.getByLabelText(/post text/i), maxLen)
 
-    expect(screen.getByRole('button', { name: /post tweet/i })).toBeEnabled()
+    expect(screen.getAllByRole('button', { name: /^post$/i }).at(-1)).toBeEnabled()
     expect(screen.getByText('240/240')).toBeInTheDocument()
   })
 
-  it('posts tweet and routes to home on success', async () => {
+  it('posts and routes to home on success', async () => {
     const user = userEvent.setup()
     window.localStorage.setItem('chirper_token', 'token-123')
 
@@ -70,8 +79,8 @@ describe('PostTweetPage', () => {
       </MemoryRouter>,
     )
 
-    await user.type(screen.getByLabelText(/tweet text/i), 'hello world')
-    await user.click(screen.getByRole('button', { name: /post tweet/i }))
+    await user.type(screen.getByLabelText(/post text/i), 'hello world')
+    await user.click(screen.getAllByRole('button', { name: /^post$/i }).at(-1)!)
 
     expect(await screen.findByRole('heading', { name: /home feed/i })).toBeInTheDocument()
   })
@@ -94,9 +103,9 @@ describe('PostTweetPage', () => {
       </MemoryRouter>,
     )
 
-    await user.type(screen.getByLabelText(/tweet text/i), 'hello world')
-    await user.click(screen.getByRole('button', { name: /post tweet/i }))
+    await user.type(screen.getByLabelText(/post text/i), 'hello world')
+    await user.click(screen.getAllByRole('button', { name: /^post$/i }).at(-1)!)
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(/tweet too long/i)
+    expect(await screen.findByRole('alert')).toHaveTextContent(/too long/i)
   })
 })

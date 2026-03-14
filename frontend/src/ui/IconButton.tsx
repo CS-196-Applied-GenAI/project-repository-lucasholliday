@@ -13,10 +13,10 @@ export function IconButton({ className, icon, count, active = false, ...props }:
     <button
       {...props}
       className={cn(
-        'focus-ring inline-flex items-center gap-1 rounded-full border px-2.5 py-1.5 text-sm transition duration-150 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60',
+        'focus-ring inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition duration-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60',
         active
-          ? 'border-[var(--accent-400)] bg-[var(--accent-glow)] text-[var(--accent-200)]'
-          : 'border-[var(--border-subtle)] bg-[color:var(--bg-layer-3)]/45 text-[var(--text-secondary)] hover:border-[var(--accent-500)] hover:text-[var(--accent-300)]',
+          ? 'border-[var(--accent-500)] bg-[var(--accent-glow-strong)] text-[var(--accent-200)]'
+          : 'border-[var(--border-subtle)] bg-[var(--bg-layer-2)] text-[var(--text-secondary)] hover:border-[var(--accent-500)] hover:text-[var(--accent-300)]',
         className,
       )}
     >
